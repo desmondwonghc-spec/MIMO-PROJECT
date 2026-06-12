@@ -121,7 +121,7 @@ async def estimate_candidate_salary(job_id: str, resume_id: str) -> dict:
     match = await matches_col.find_one({"job_id": job_id, "resume_id": resume_id})
     match_score = match.get("overall_score", 60) if match else 60
 
-    # 获取市场薪资数据
+    # 获取市场薪资数据（提取纯数值，去除datetime等不可序列化字段）
     market = job.get("market_salary")
     if not market:
         # 自动调研
@@ -131,13 +131,27 @@ async def estimate_candidate_salary(job_id: str, resume_id: str) -> dict:
             "p25": market_result["p25"],
             "p75": market_result["p75"],
         }
+    else:
+        market = {
+            "average": float(market.get("average", 0)),
+            "p25": float(market.get("p25", 0)),
+            "p75": float(market.get("p75", 0)),
+        }
 
-    # 构建输入
+    # 构建输入（只取纯数据字段，避免datetime序列化问题）
+    salary_range = job.get("salary_range") or {}
     job_data = {
         "title": job.get("title", ""),
         "location": job.get("location", ""),
-        "salary_range": job.get("salary_range"),
-        "requirements": job.get("requirements", {}),
+        "salary_range": {
+            "min": float(salary_range.get("min", 0)),
+            "max": float(salary_range.get("max", 0)),
+        } if salary_range else None,
+        "requirements": {
+            "education": job.get("requirements", {}).get("education", ""),
+            "min_experience_years": job.get("requirements", {}).get("min_experience_years", 0),
+            "required_skills": job.get("requirements", {}).get("required_skills", []),
+        },
     }
 
     # 调用 AI 预估
