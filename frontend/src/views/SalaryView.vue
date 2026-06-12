@@ -70,7 +70,7 @@
             <label class="field-label">简历</label>
             <select v-model="estimateForm.resume_id" class="field-select">
               <option value="">请选择...</option>
-              <option v-for="r in resumes" :key="r.id" :value="r.id">{{ r.structured_data?.name || r.original_filename }}</option>
+              <option v-for="r in resumes" :key="r.id" :value="r.id">{{ r.structured_data?.name || r.original_filename }}{{ r.parsing_status !== 'completed' ? ' (未解析)' : '' }}</option>
             </select>
           </div>
         </div>
@@ -150,23 +150,26 @@ const doResearch = async () => {
     if (researchForm.value.location) payload.location = researchForm.value.location
     const { data } = await api.post('/api/v1/salary/research', payload)
     researchResult.value = data
-  } catch (e) {
+  } catch (e: any) {
+    const msg = e.response?.data?.detail || '薪资调研失败'
     console.error('薪资调研失败', e)
-    alert('薪资调研失败，请检查AI配置')
+    alert(msg)
   } finally {
     researching.value = false
   }
 }
 
 const doEstimate = async () => {
+  if (!estimateForm.value.job_id || !estimateForm.value.resume_id) return
   estimating.value = true
   estimateResult.value = null
   try {
     const { data } = await api.post('/api/v1/salary/estimate', estimateForm.value)
     estimateResult.value = data
-  } catch (e) {
+  } catch (e: any) {
+    const msg = e.response?.data?.detail || '薪资预估失败'
     console.error('薪资预估失败', e)
-    alert('薪资预估失败，请检查AI配置和匹配结果')
+    alert(msg)
   } finally {
     estimating.value = false
   }
@@ -176,7 +179,7 @@ onMounted(async () => {
   try {
     const [j, r] = await Promise.all([
       api.get('/api/v1/jobs', { params: { page_size: 100 } }),
-      api.get('/api/v1/resumes', { params: { status: 'completed', page_size: 100 } }),
+      api.get('/api/v1/resumes', { params: { page_size: 100 } }),
     ])
     jobs.value = j.data.items || []
     resumes.value = r.data.items || []
