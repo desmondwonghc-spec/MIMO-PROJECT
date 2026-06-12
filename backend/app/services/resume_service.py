@@ -6,7 +6,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from bson import ObjectId
+from bson import ObjectId, errors as bson_errors
 
 from database import get_collection
 from app.file_handlers.file_storage import save_upload_file, delete_resume_file
@@ -18,6 +18,14 @@ from app.ai.parsers.resume_parser import parse_resume_data
 from app.models.resume import ParsingStatus
 
 logger = logging.getLogger(__name__)
+
+
+def _oid(resume_id: str) -> ObjectId:
+    """安全转换 ObjectId"""
+    try:
+        return ObjectId(resume_id)
+    except (bson_errors.InvalidId, Exception):
+        raise ValueError(f"无效的简历ID: {resume_id}")
 
 
 async def upload_and_parse(filename: str, file_content: bytes, source: str = "upload") -> dict:
@@ -67,12 +75,12 @@ async def _parse_resume_async(resume_id: str) -> None:
     try:
         # 更新状态为处理中
         await collection.update_one(
-            {"_id": ObjectId(resume_id)},
+            {"_id": _oid(resume_id)},
             {"$set": {"parsing_status": ParsingStatus.PROCESSING.value, "updated_at": datetime.now(timezone.utc)}}
         )
 
         # 获取文档
-        doc = await collection.find_one({"_id": ObjectId(resume_id)})
+        doc = await collection.find_one({"_id": _oid(resume_id)})
         if not doc:
             return
 
@@ -86,7 +94,7 @@ async def _parse_resume_async(resume_id: str) -> None:
 
         # 保存原始文本
         await collection.update_one(
-            {"_id": ObjectId(resume_id)},
+            {"_id": _oid(resume_id)},
             {"$set": {"raw_text": raw_text}}
         )
 
@@ -99,7 +107,7 @@ async def _parse_resume_async(resume_id: str) -> None:
 
         # 4. 存储结果
         await collection.update_one(
-            {"_id": ObjectId(resume_id)},
+            {"_id": _oid(resume_id)},
             {"$set": {
                 "structured_data": structured.model_dump(),
                 "parsing_status": ParsingStatus.COMPLETED.value,
@@ -112,7 +120,7 @@ async def _parse_resume_async(resume_id: str) -> None:
     except Exception as e:
         logger.error(f"简历 {resume_id} 解析失败: {e}")
         await collection.update_one(
-            {"_id": ObjectId(resume_id)},
+            {"_id": _oid(resume_id)},
             {"$set": {
                 "parsing_status": ParsingStatus.FAILED.value,
                 "parsing_error": str(e),
@@ -124,13 +132,13 @@ async def _parse_resume_async(resume_id: str) -> None:
 async def reparse_resume(resume_id: str) -> None:
     """重新解析简历"""
     collection = get_collection("resumes")
-    doc = await collection.find_one({"_id": ObjectId(resume_id)})
+    doc = await collection.find_one({"_id": _oid(resume_id)})
     if not doc:
         raise ValueError(f"简历 {resume_id} 不存在")
 
     # 重置状态
     await collection.update_one(
-        {"_id": ObjectId(resume_id)},
+        {"_id": _oid(resume_id)},
         {"$set": {
             "parsing_status": ParsingStatus.PENDING.value,
             "parsing_error": None,
@@ -145,7 +153,7 @@ async def reparse_resume(resume_id: str) -> None:
 async def get_resume(resume_id: str) -> Optional[dict]:
     """获取简历详情"""
     collection = get_collection("resumes")
-    return await collection.find_one({"_id": ObjectId(resume_id)})
+    return await collection.find_one({"_id": _oid(resume_id)})
 
 
 async def list_resumes(
@@ -187,7 +195,7 @@ async def list_resumes(
 async def delete_resume(resume_id: str) -> bool:
     """删除简历（文件+记录）"""
     collection = get_collection("resumes")
-    doc = await collection.find_one({"_id": ObjectId(resume_id)})
+    doc = await collection.find_one({"_id": _oid(resume_id)})
     if not doc:
         return False
 
@@ -196,5 +204,5 @@ async def delete_resume(resume_id: str) -> bool:
         delete_resume_file(doc["file_path"])
 
     # 删除记录
-    result = await collection.delete_one({"_id": ObjectId(resume_id)})
+    result = await collection.delete_one({"_id": _oid(resume_id)})
     return result.deleted_count > 0

@@ -75,6 +75,10 @@ def create_app() -> FastAPI:
             allow_headers=["*"],
         )
 
+    # 注册自定义异常处理器
+    from app.utils.exceptions import AppError, app_error_handler
+    app.add_exception_handler(AppError, app_error_handler)
+
     # 注册 API 路由
     from app.routers import jobs, resumes, matching, interview, salary, settings_router
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["岗位管理"])

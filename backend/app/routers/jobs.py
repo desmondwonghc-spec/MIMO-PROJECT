@@ -4,7 +4,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Query
-from bson import ObjectId
+from bson import ObjectId, errors as bson_errors
 
 from database import get_collection
 from app.models.job import (
@@ -13,6 +13,14 @@ from app.models.job import (
 )
 from app.models.common import paginate
 from app.utils.exceptions import NotFoundError, ValidationError
+
+
+def _validate_object_id(id_str: str) -> ObjectId:
+    """验证并转换 ObjectId，无效时抛出 ValidationError"""
+    try:
+        return ObjectId(id_str)
+    except (bson_errors.InvalidId, Exception):
+        raise ValidationError(f"无效的ID格式: {id_str}")
 
 router = APIRouter()
 
@@ -97,7 +105,7 @@ async def create_job(job: JobCreate):
 async def get_job(job_id: str):
     """获取单个岗位详情"""
     collection = get_collection("jobs")
-    doc = await collection.find_one({"_id": ObjectId(job_id)})
+    doc = await collection.find_one({"_id": _validate_object_id(job_id)})
     if not doc:
         raise NotFoundError("岗位", job_id)
     return _doc_to_response(doc)
@@ -109,7 +117,7 @@ async def update_job(job_id: str, job: JobUpdate):
     collection = get_collection("jobs")
 
     # 检查是否存在
-    existing = await collection.find_one({"_id": ObjectId(job_id)})
+    existing = await collection.find_one({"_id": _validate_object_id(job_id)})
     if not existing:
         raise NotFoundError("岗位", job_id)
 
@@ -126,11 +134,11 @@ async def update_job(job_id: str, job: JobUpdate):
             update_data[key] = update_data[key].value
 
     await collection.update_one(
-        {"_id": ObjectId(job_id)},
+        {"_id": _validate_object_id(job_id)},
         {"$set": update_data}
     )
 
-    doc = await collection.find_one({"_id": ObjectId(job_id)})
+    doc = await collection.find_one({"_id": _validate_object_id(job_id)})
     return _doc_to_response(doc)
 
 
@@ -138,6 +146,6 @@ async def update_job(job_id: str, job: JobUpdate):
 async def delete_job(job_id: str):
     """删除岗位"""
     collection = get_collection("jobs")
-    result = await collection.delete_one({"_id": ObjectId(job_id)})
+    result = await collection.delete_one({"_id": _validate_object_id(job_id)})
     if result.deleted_count == 0:
         raise NotFoundError("岗位", job_id)
