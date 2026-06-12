@@ -85,7 +85,26 @@ async def update_settings(update: SettingsUpdate):
         upsert=True,
     )
 
+    # 如果更新了 API 密钥，重新初始化 DeepSeek 客户端
+    if "deepseek_api_key" in update_data:
+        await _reinit_deepseek()
+
     return await get_settings()
+
+
+async def _reinit_deepseek():
+    """重新初始化 DeepSeek 客户端"""
+    from app.ai.deepseek_client import init_client
+
+    doc = await _get_settings_doc()
+    api_key = doc.get("deepseek_api_key", "")
+    base_url = doc.get("deepseek_base_url", app_settings.deepseek_base_url)
+
+    if api_key:
+        try:
+            await init_client(api_key, base_url)
+        except Exception as e:
+            print(f"DeepSeek 客户端重新初始化失败: {e}")
 
 
 @router.post("/test-api", response_model=APITestResponse)
