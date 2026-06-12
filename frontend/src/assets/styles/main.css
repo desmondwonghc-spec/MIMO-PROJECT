@@ -1,7 +1,43 @@
-/* 全局样式重置 */
-*,
-*::before,
-*::after {
+/* === HR智能筛选系统 — 设计系统 ===
+   视觉定位：人才评估工作台
+   签名色：Amber #E8A838（精准判断的隐喻）
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  /* 色彩 */
+  --obsidian: #1C1F26;
+  --obsidian-light: #262A33;
+  --obsidian-hover: #2E323C;
+  --paper: #FAF8F5;
+  --paper-alt: #F3F1ED;
+  --amber: #E8A838;
+  --amber-light: #F5D08E;
+  --amber-glow: rgba(232, 168, 56, 0.15);
+  --graphite: #3A3D44;
+  --graphite-light: #5A5D64;
+  --sage: #7BAE7F;
+  --sage-bg: rgba(123, 174, 127, 0.1);
+  --stone: #A8A5A0;
+  --stone-light: #D4D2CE;
+  --coral: #D4654A;
+  --coral-bg: rgba(212, 101, 74, 0.1);
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 2px rgba(28, 31, 38, 0.06);
+  --shadow-md: 0 4px 12px rgba(28, 31, 38, 0.08);
+  --shadow-lg: 0 8px 24px rgba(28, 31, 38, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* 字体 */
+  --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* === 全局重置 === */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -9,41 +45,121 @@
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--graphite);
+  background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f7fa;
-  color: #333;
 }
 
-#app {
-  height: 100%;
+#app { height: 100%; }
+
+a { color: var(--amber); text-decoration: none; }
+a:hover { color: #D49A2E; }
+
+/* 选中色 */
+::selection {
+  background: var(--amber-glow);
+  color: var(--graphite);
 }
 
-a {
-  color: #667eea;
-  text-decoration: none;
+/* 滚动条 */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--stone-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--stone); }
+
+/* === 按钮系统 === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  letter-spacing: 0.01em;
 }
 
-a:hover {
-  color: #764ba2;
+.btn-primary {
+  background: var(--amber);
+  color: var(--obsidian);
+}
+.btn-primary:hover {
+  background: #D49A2E;
+  box-shadow: 0 2px 8px rgba(232, 168, 56, 0.3);
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.btn-secondary {
+  background: var(--white);
+  color: var(--graphite);
+  border: 1px solid var(--stone-light);
+}
+.btn-secondary:hover {
+  border-color: var(--stone);
+  background: var(--paper-alt);
 }
 
-::-webkit-scrollbar-track {
+.btn-ghost {
   background: transparent;
+  color: var(--graphite-light);
+}
+.btn-ghost:hover {
+  background: rgba(0,0,0,0.04);
+  color: var(--graphite);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
-  border-radius: 3px;
+.btn-danger {
+  background: var(--coral-bg);
+  color: var(--coral);
+}
+.btn-danger:hover {
+  background: var(--coral);
+  color: var(--white);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === 表单系统 === */
+input, select, textarea {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--stone-light);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--graphite);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-glow);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--stone);
+}
+
+/* === 卡片系统 === */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
 }

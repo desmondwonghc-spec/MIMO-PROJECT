@@ -43,7 +43,13 @@ const routes: RouteRecordRaw[] = [
         path: 'resumes',
         name: 'Resumes',
         component: () => import('../views/ResumesView.vue'),
-        meta: { title: '简历管理', icon: '📄' },
+        meta: { title: '简历库', icon: '📄' },
+      },
+      {
+        path: 'resumes/:id',
+        name: 'ResumeDetail',
+        component: () => import('../views/ResumeDetailView.vue'),
+        meta: { title: '简历详情' },
       },
       {
         path: 'matching',

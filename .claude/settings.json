@@ -1,0 +1,21 @@
+{
+  "ultracode": true,
+  "workflowKeywordTriggerEnabled": true,
+  "effortLevel": "xhigh",
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm *)",
+      "Bash(py *)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "Bash(git *)",
+      "Bash(node *)",
+      "Read",
+      "Glob",
+      "Grep"
+    ]
+  }
+}

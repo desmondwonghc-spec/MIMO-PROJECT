@@ -19,10 +19,41 @@ async def lifespan(app: FastAPI):
     # 启动：连接数据库
     await connect_db()
     print(f"✅ MongoDB 已连接: {settings.mongodb_url}")
+
+    # 尝试初始化 DeepSeek 客户端
+    await _init_deepseek()
+
     yield
     # 关闭：断开数据库
     await close_db()
     print("✅ MongoDB 连接已关闭")
+
+
+async def _init_deepseek():
+    """从数据库设置中加载 API 密钥并初始化 DeepSeek 客户端"""
+    try:
+        from database import get_collection
+        from app.ai.deepseek_client import init_client
+
+        # 先用环境变量中的密钥
+        api_key = settings.deepseek_api_key
+        base_url = settings.deepseek_base_url
+
+        # 尝试从数据库加载
+        doc = await get_collection("app_settings").find_one({"key": "general"})
+        if doc:
+            if doc.get("deepseek_api_key"):
+                api_key = doc["deepseek_api_key"]
+            if doc.get("deepseek_base_url"):
+                base_url = doc["deepseek_base_url"]
+
+        if api_key:
+            await init_client(api_key, base_url)
+            print(f"✅ DeepSeek 客户端已初始化")
+        else:
+            print("⚠️ DeepSeek API 密钥未配置，请在设置页面中配置")
+    except Exception as e:
+        print(f"⚠️ DeepSeek 客户端初始化失败: {e}")
 
 
 def create_app() -> FastAPI:
