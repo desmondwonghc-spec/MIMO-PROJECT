@@ -192,40 +192,52 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.job-form-page h2 { margin: 0 0 20px; color: #333; }
+.job-form-page h2 { font-family: var(--font-display); margin: 0 0 20px; color: var(--graphite); font-size: 18px; font-weight: 600; }
 
 .job-form {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--white);
+  border-radius: var(--radius-md);
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .form-section { margin-bottom: 24px; }
-.form-section h3 { margin: 0 0 16px; font-size: 15px; color: #555; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+.form-section h3 {
+  margin: 0 0 16px; font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  color: var(--graphite-light); text-transform: uppercase; letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 10px;
+}
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #666; font-weight: 500; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 12px; color: var(--graphite-light); font-weight: 600; letter-spacing: 0.02em; }
 .form-group input, .form-group select, .form-group textarea {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--stone-light);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--graphite);
   outline: none;
   box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-  border-color: #667eea;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-glow);
 }
 .form-group textarea { resize: vertical; }
 
-.form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #eee; }
+.form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); }
 
-.btn { padding: 10px 24px; border-radius: 6px; font-size: 14px; cursor: pointer; border: none; }
-.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-secondary { background: #f0f0f0; color: #666; }
+.btn { padding: 10px 24px; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font-body); font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: var(--amber); color: var(--obsidian); }
+.btn-primary:hover { background: #D49A2E; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: var(--paper-alt); color: var(--graphite-light); }
+.btn-secondary:hover { background: var(--stone-light); }
 </style>

@@ -74,14 +74,29 @@ const handleDelete = async () => {
 
 <style scoped>
 .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-.detail-header h2 { margin: 0 0 8px; }
-.meta { display: flex; gap: 16px; color: #888; font-size: 14px; }
+.detail-header h2 { font-family: var(--font-display); margin: 0 0 8px; font-size: 20px; font-weight: 700; color: var(--graphite); }
+.meta { display: flex; gap: 16px; color: var(--stone); font-size: 13px; }
+.meta-item { display: inline-flex; align-items: center; gap: 4px; }
+.meta-item.salary { font-family: var(--font-display); font-weight: 600; color: var(--amber); }
 .actions { display: flex; gap: 8px; }
-.detail-body { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.detail-body {
+  background: var(--white); border-radius: var(--radius-md); padding: 24px;
+  box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.04);
+}
 .section { margin-bottom: 20px; }
-.section h3 { margin: 0 0 12px; font-size: 15px; color: #555; }
-.section p { color: #666; line-height: 1.6; }
-.section ul { color: #666; line-height: 1.8; }
+.section h3 {
+  margin: 0 0 12px; font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  color: var(--graphite-light); text-transform: uppercase; letter-spacing: 0.04em;
+  padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.section p { color: var(--graphite-light); line-height: 1.6; font-size: 14px; }
+.section ul { color: var(--graphite-light); line-height: 1.8; font-size: 14px; padding-left: 18px; }
+.btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font-body); font-weight: 500; text-decoration: none; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-secondary { background: var(--white); color: var(--graphite); border: 1px solid var(--stone-light); }
+.btn-secondary:hover { border-color: var(--stone); }
+.btn-danger { background: var(--coral-bg); color: var(--coral); }
+.btn-danger:hover { background: var(--coral); color: var(--white); }
+.loading { text-align: center; padding: 60px; color: var(--stone); font-size: 13px; }
 .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; text-decoration: none; cursor: pointer; border: none; }
 .btn-secondary { background: #f0f0f0; color: #666; }
 .btn-danger { background: #fff1f0; color: #ff4d4f; }

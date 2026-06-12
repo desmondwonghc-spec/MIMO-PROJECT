@@ -78,13 +78,13 @@
         <span class="section-hint">上传简历后可在此查看评分</span>
       </div>
       <div class="ring-preview">
-        <div class="score-ring" :style="{ '--score': 82 }">
+        <div class="score-ring" :style="{ '--score': latestScore }">
           <svg viewBox="0 0 120 120">
             <circle class="ring-bg" cx="60" cy="60" r="52" />
             <circle class="ring-fill" cx="60" cy="60" r="52" />
           </svg>
           <div class="ring-center">
-            <span class="ring-value">82</span>
+            <span class="ring-value">{{ latestScore || '—' }}</span>
             <span class="ring-label">综合匹配</span>
           </div>
         </div>
@@ -103,20 +103,56 @@
 </template>
 
 <script setup lang="ts">
-const stats = [
-  { label: '在招岗位', value: '—', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#E8A838" stroke-width="1.5"><rect x="3" y="5" width="14" height="12" rx="1.5"/><path d="M6 5V3.5A1.5 1.5 0 017.5 2h5A1.5 1.5 0 0114 3.5V5"/></svg>' },
-  { label: '收到简历', value: '—', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7BAE7F" stroke-width="1.5"><path d="M5 3h7l5 5v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M12 3v5h5"/></svg>' },
-  { label: '匹配结果', value: '—', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B8DD6" stroke-width="1.5"><circle cx="7.5" cy="10" r="5"/><circle cx="12.5" cy="10" r="5"/></svg>' },
-  { label: '预面试', value: '—', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#B07BAC" stroke-width="1.5"><path d="M4 4h12a1 1 0 011 1v8a1 1 0 01-1 1H7l-3 3V5a1 1 0 011-1z"/></svg>' },
-]
+import { ref, onMounted } from 'vue'
+import api from '../utils/api'
 
-const dimensions = [
-  { name: '技能匹配', score: 85 },
-  { name: '经验匹配', score: 90 },
-  { name: '学历匹配', score: 75 },
-  { name: '地点匹配', score: 100 },
-  { name: '薪资匹配', score: 70 },
-]
+const stats = ref([
+  { label: '在招岗位', value: '0', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#E8A838" stroke-width="1.5"><rect x="3" y="5" width="14" height="12" rx="1.5"/><path d="M6 5V3.5A1.5 1.5 0 017.5 2h5A1.5 1.5 0 0114 3.5V5"/></svg>' },
+  { label: '收到简历', value: '0', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7BAE7F" stroke-width="1.5"><path d="M5 3h7l5 5v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M12 3v5h5"/></svg>' },
+  { label: '匹配结果', value: '0', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B8DD6" stroke-width="1.5"><circle cx="7.5" cy="10" r="5"/><circle cx="12.5" cy="10" r="5"/></svg>' },
+  { label: '预面试', value: '0', icon: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#B07BAC" stroke-width="1.5"><path d="M4 4h12a1 1 0 011 1v8a1 1 0 01-1 1H7l-3 3V5a1 1 0 011-1z"/></svg>' },
+])
+
+const latestScore = ref(0)
+const dimensions = ref([
+  { name: '技能匹配', score: 0 },
+  { name: '经验匹配', score: 0 },
+  { name: '学历匹配', score: 0 },
+  { name: '地点匹配', score: 0 },
+  { name: '薪资匹配', score: 0 },
+])
+
+onMounted(async () => {
+  try {
+    const [jobsRes, resumesRes] = await Promise.all([
+      api.get('/api/v1/jobs', { params: { page_size: 1 } }),
+      api.get('/api/v1/resumes', { params: { page_size: 1 } }),
+    ])
+    stats.value[0].value = String(jobsRes.data.total || 0)
+    stats.value[1].value = String(resumesRes.data.total || 0)
+
+    // 尝试获取最新的匹配结果
+    const jobs = jobsRes.data.items || []
+    if (jobs.length > 0) {
+      try {
+        const matchRes = await api.get(`/api/v1/matching/results/${jobs[0].id}`, { params: { page_size: 1 } })
+        const matches = matchRes.data.items || []
+        stats.value[2].value = String(matchRes.data.total || 0)
+        if (matches.length > 0) {
+          const m = matches[0]
+          latestScore.value = m.overall_score || 0
+          const dims = m.dimension_scores || {}
+          const dimKeys = ['skills_match', 'experience_match', 'education_match', 'location_match', 'salary_match']
+          const dimNames = ['技能匹配', '经验匹配', '学历匹配', '地点匹配', '薪资匹配']
+          dimensions.value = dimKeys.map((k, i) => ({
+            name: dimNames[i],
+            score: dims[k]?.score || 0,
+          }))
+        }
+      } catch { /* no matches yet */ }
+    }
+  } catch (e) { console.error('加载仪表盘数据失败', e) }
+})
 </script>
 
 <style scoped>
