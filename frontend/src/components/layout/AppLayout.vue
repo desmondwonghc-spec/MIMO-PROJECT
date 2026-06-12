@@ -110,6 +110,11 @@ const menuItems = [
     label: '薪资分析',
     icon: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2v14M5 5.5C5 4.1 6.8 3 9 3s4 1.1 4 2.5S11.2 8 9 8 5 9.1 5 10.5 6.8 13 9 13s4-1.1 4-2.5"/></svg>',
   },
+  {
+    path: '/interview',
+    label: 'AI 预面试',
+    icon: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h12a1 1 0 011 1v8a1 1 0 01-1 1H6l-3 3V4a1 1 0 011-1z"/><path d="M7 7h4M7 10h2"/></svg>',
+  },
 ]
 
 const currentTitle = computed(() => (route.meta?.title as string) || '工作台')

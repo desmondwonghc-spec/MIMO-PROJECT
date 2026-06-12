@@ -64,6 +64,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '薪资分析', icon: '💰' },
       },
       {
+        path: 'interview',
+        name: 'Interview',
+        component: () => import('../views/PreInterviewView.vue'),
+        meta: { title: 'AI 预面试', icon: '💬' },
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('../views/SettingsView.vue'),
