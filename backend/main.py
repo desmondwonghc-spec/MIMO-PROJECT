@@ -3,9 +3,19 @@ HR智能简历筛选系统 — 应用入口
 启动 FastAPI 服务器 + pywebview 桌面窗口
 """
 import sys
+import os
 import threading
 import time
 from pathlib import Path
+
+# 修复 Windows 控制台编码
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 # 将 backend 目录加入 Python 路径
 sys.path.insert(0, str(Path(__file__).resolve().parent))
