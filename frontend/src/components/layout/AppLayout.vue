@@ -55,6 +55,13 @@
         </div>
         <div class="top-bar-right">
           <span class="time-display">{{ currentTime }}</span>
+          <span class="user-info" v-if="currentUser">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="5" r="3"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>
+            {{ currentUser.username }}
+          </span>
+          <button class="btn-logout" @click="handleLogout" title="退出登录">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H4a1 1 0 00-1 1v10a1 1 0 001 1h2M11 11l3-3-3-3M14 8H6"/></svg>
+          </button>
         </div>
       </header>
       <div class="page-body">
@@ -66,10 +73,12 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const currentTime = ref('')
+const currentUser = ref<any>(null)
 
 let timer: ReturnType<typeof setInterval>
 
@@ -80,9 +89,21 @@ onMounted(() => {
   }
   update()
   timer = setInterval(update, 60000)
+
+  // 加载用户信息
+  try {
+    const userStr = localStorage.getItem('user')
+    if (userStr) currentUser.value = JSON.parse(userStr)
+  } catch {}
 })
 
 onUnmounted(() => clearInterval(timer))
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  router.push('/login')
+}
 
 const menuItems = [
   {
@@ -283,6 +304,36 @@ const currentTitle = computed(() => (route.meta?.title as string) || '工作台'
   font-size: 12px;
   color: var(--stone);
   font-variant-numeric: tabular-nums;
+}
+
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--graphite-light);
+  padding: 4px 10px;
+  background: var(--paper-alt);
+  border-radius: var(--radius-sm);
+}
+
+.btn-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--stone);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-logout:hover {
+  background: var(--coral-bg);
+  color: var(--coral);
 }
 
 .page-body {

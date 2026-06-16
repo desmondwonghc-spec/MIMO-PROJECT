@@ -2,18 +2,25 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue'),
+    meta: { title: '登录', requiresAuth: false },
+  },
+  {
     path: '/',
     redirect: '/dashboard',
   },
   {
     path: '/',
     component: () => import('../components/layout/AppLayout.vue'),
+    meta: { requiresAuth: true },
     children: [
       {
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('../views/DashboardView.vue'),
-        meta: { title: '仪表盘', icon: '📊' },
+        meta: { title: '工作台', icon: '📊' },
       },
       {
         path: 'jobs',
@@ -87,6 +94,22 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+// 路由守卫：检查登录状态
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth !== false)
+
+  if (requiresAuth && !token) {
+    // 需要认证但没有 token，跳转登录页
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  } else if (to.path === '/login' && token) {
+    // 已登录用户访问登录页，跳转首页
+    next({ path: '/dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router

@@ -70,3 +70,7 @@ async def _create_indexes() -> None:
 
     # app_settings 集合索引
     await db.app_settings.create_index([("key", 1)], unique=True)
+
+    # users 集合索引
+    await db.users.create_index([("username", 1)], unique=True)
+    await db.users.create_index([("role", 1)])

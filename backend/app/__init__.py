@@ -23,6 +23,9 @@ async def lifespan(app: FastAPI):
     # 尝试初始化 DeepSeek 客户端
     await _init_deepseek()
 
+    # 确保管理员账号存在
+    await _ensure_admin()
+
     yield
     # 关闭：断开数据库
     await close_db()
@@ -56,6 +59,15 @@ async def _init_deepseek():
         print(f"⚠️ DeepSeek 客户端初始化失败: {e}")
 
 
+async def _ensure_admin():
+    """确保至少有一个管理员账号"""
+    try:
+        from app.services.auth_service import ensure_admin_exists
+        await ensure_admin_exists()
+    except Exception as e:
+        print(f"⚠️ 管理员初始化失败: {e}")
+
+
 def create_app() -> FastAPI:
     """创建 FastAPI 应用"""
     app = FastAPI(
@@ -65,21 +77,29 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS 配置（开发模式需要）
-    if settings.debug:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+    # CORS 配置
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:8765",
+            "*",  # 生产环境建议改为具体域名
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     # 注册自定义异常处理器
     from app.utils.exceptions import AppError, app_error_handler
     app.add_exception_handler(AppError, app_error_handler)
 
-    # 注册 API 路由
+    # 注册认证路由（无需认证）
+    from app.routers import auth
+    app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
+
+    # 注册业务 API 路由
     from app.routers import jobs, resumes, matching, interview, salary, settings_router
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["岗位管理"])
     app.include_router(resumes.router, prefix="/api/v1/resumes", tags=["简历管理"])
