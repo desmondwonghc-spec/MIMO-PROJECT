@@ -36,11 +36,20 @@ def start_server(host: str, port: int, debug: bool):
 
 
 def main():
+    import argparse
     from config import settings
 
-    host = settings.server_host
-    port = settings.server_port
-    debug = settings.debug
+    parser = argparse.ArgumentParser(description="HR智能简历筛选系统")
+    parser.add_argument("--host", default=settings.server_host, help="绑定地址 (默认: 127.0.0.1, 远程: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=settings.server_port, help="端口号 (默认: 8765)")
+    parser.add_argument("--debug", action="store_true", default=settings.debug, help="调试模式")
+    parser.add_argument("--no-window", action="store_true", help="不打开桌面窗口（服务器模式）")
+    args = parser.parse_args()
+
+    host = args.host
+    port = args.port
+    debug = args.debug
+    no_window = args.no_window
 
     # 1. 启动 FastAPI 服务器（守护线程）
     server_thread = threading.Thread(
@@ -52,7 +61,16 @@ def main():
 
     # 等待服务器就绪
     time.sleep(1.5)
-    print(f"✅ API 服务器已启动: http://{host}:{port}")
+    print(f"API 服务器已启动: http://{host}:{port}")
+
+    if no_window:
+        # 服务器模式：无桌面窗口
+        print("服务器模式运行中，按 Ctrl+C 停止")
+        try:
+            server_thread.join()
+        except KeyboardInterrupt:
+            print("\n服务器已停止")
+        return
 
     # 2. 启动 pywebview 桌面窗口
     try:
@@ -68,8 +86,7 @@ def main():
         )
         webview.start(debug=debug)
     except ImportError:
-        # pywebview 未安装时，只运行服务器
-        print("⚠️ pywebview 未安装，仅运行 API 服务器模式")
+        print("pywebview 未安装，仅运行 API 服务器模式")
         print(f"请在浏览器中访问: http://{host}:{port}")
         try:
             server_thread.join()
