@@ -181,59 +181,6 @@ python main.py
 - DeepSeek API 密钥配置 + 连接测试
 - 邮件SMTP配置（Phase 2）
 
----
-
-## 🎨 设计系统
-
-项目采用独立设计的视觉系统（非模板化）：
-
-| 元素 | 方案 |
-|------|------|
-| **品牌名** | 人才洞察 TalentLens |
-| **配色** | Obsidian `#1C1F26` 侧边栏 / Paper `#FAF8F5` 背景 / Amber `#E8A838` 强调色 / Sage `#7BAE7F` 积极状态 |
-| **字体** | DM Sans（标题，几何精确感）+ Inter（正文/数据，高可读性） |
-| **签名元素** | 环形评分盘（SVG仪表隐喻）+ 侧边栏Amber光晕 |
-
----
-
-## 📁 项目结构
-
-```
-hr-system/
-├── backend/                          # Python FastAPI 后端
-│   ├── main.py                       # 应用入口（FastAPI + pywebview）
-│   ├── config.py                     # 配置管理
-│   ├── database.py                   # MongoDB连接
-│   ├── requirements.txt              # Python依赖
-│   └── app/
-│       ├── __init__.py               # FastAPI应用工厂
-│       ├── models/                   # Pydantic数据模型 (8个)
-│       ├── routers/                  # API路由 (6个模块)
-│       ├── services/                 # 业务逻辑层 (4个服务)
-│       ├── ai/
-│       │   ├── deepseek_client.py    # DeepSeek API封装
-│       │   ├── prompts/              # Prompt模板 (6个)
-│       │   └── parsers/              # AI响应解析器
-│       ├── file_handlers/            # PDF/DOCX处理
-│       └── utils/                    # 工具函数
-├── frontend/                         # Vue 3 前端
-│   ├── src/
-│   │   ├── views/                    # 页面组件 (10个)
-│   │   ├── components/layout/        # 布局组件
-│   │   ├── router/                   # 路由配置
-│   │   ├── stores/                   # Pinia状态管理
-│   │   ├── types/                    # TypeScript类型
-│   │   └── utils/                    # Axios封装
-│   └── vite.config.ts                # Vite配置
-├── data/                             # 运行时数据（简历文件）
-├── scripts/                          # 构建脚本
-├── packaging/                        # PyInstaller配置
-├── 启动HR系统.bat                     # 一键启动脚本
-└── README.md
-```
-
----
-
 ## 🔌 API 接口
 
 共 **21个** RESTful API 端点：
@@ -249,57 +196,11 @@ hr-system/
 
 完整API文档：启动后端后访问 `http://127.0.0.1:8765/docs`
 
----
-
-## 📊 开发进度
-
-| 周次 | 内容 | 状态 |
-|------|------|------|
-| 第1周 | 基础框架 + 岗位管理 + UI骨架 | ✅ |
-| 第2周 | 简历解析 + UI视觉设计系统 | ✅ |
-| 第3周 | 智能匹配评分 + 薪资分析 | ✅ |
-| 第4周 | AI预面试 | ✅ |
-| 第5周 | 打磨 + 打包配置 + 全链路测试 | ✅ |
-
-### Phase 2（后续迭代）
+### 📊 Phase 2（后续迭代）
 - [ ] 候选人流程追踪（Kanban看板）
 - [ ] 批量处理 + 批量报告
 - [ ] 数据可视化仪表盘（ECharts）
 - [ ] 自动面试邀请邮件
-
----
-
-## 🧪 测试
-
-```bash
-# 后端API测试（启动后端后）
-cd backend
-.venv\Scripts\activate
-python -c "from app import create_app; app = create_app(); print('OK')"
-
-# 前端编译测试
-cd frontend
-npm run build
-
-# 全链路API测试（共12项）
-# 详见 scripts/test_api.py
-```
-
----
-
-## 📦 打包为桌面应用
-
-```bash
-# 1. 构建前端
-cd frontend && npm run build && cd ..
-
-# 2. PyInstaller打包
-pyinstaller packaging/hr_screening.spec
-
-# 3. 输出目录
-dist/HR智能简历筛选/
-  └── HR智能简历筛选.exe
-```
 
 ---
 
@@ -312,16 +213,3 @@ dist/HR智能简历筛选/
 
 ---
 
-## 📄 许可证
-
-MIT License
-
----
-
-## 🙏 致谢
-
-- [FastAPI](https://fastapi.tiangolo.com/) — 高性能Python Web框架
-- [Vue.js](https://vuejs.org/) — 渐进式JavaScript框架
-- [pywebview](https://pywebview.flowrl.com/) — 轻量级桌面窗口库
-- [DeepSeek](https://deepseek.com/) — AI大模型服务
-- [MongoDB](https://www.mongodb.com/) — 文档数据库
