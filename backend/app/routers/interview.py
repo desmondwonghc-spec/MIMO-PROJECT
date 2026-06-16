@@ -4,6 +4,7 @@
 from __future__ import annotations
 from typing import Optional
 from fastapi import APIRouter, Query
+from fastapi.responses import Response
 
 from app.services import interview_service
 from app.models.interview import (
@@ -67,3 +68,37 @@ async def list_sessions(
         status=status,
     )
     return {"items": sessions, "total": len(sessions)}
+
+
+@router.get("/{session_id}/export")
+async def export_questions_pdf(session_id: str):
+    """导出面试问题为 PDF 文档"""
+    from bson import ObjectId, errors as bson_errors
+    from database import get_collection
+    from app.file_handlers.pdf_export import generate_interview_pdf
+
+    try:
+        oid = ObjectId(session_id)
+    except (bson_errors.InvalidId, Exception):
+        raise ValidationError(f"无效的会话ID: {session_id}")
+
+    session = await get_collection("interview_sessions").find_one({"_id": oid})
+    if not session:
+        raise NotFoundError("面试会话", session_id)
+
+    # 转换 _id
+    session["id"] = str(session.pop("_id"))
+
+    # 获取岗位名称用于文件名
+    job = await get_collection("jobs").find_one({"job_id": session.get("job_id")})
+    job_title = "面试问题"
+
+    pdf_bytes = generate_interview_pdf(session)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="interview_{session_id[:8]}.pdf"'
+        },
+    )

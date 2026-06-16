@@ -58,7 +58,7 @@
           </div>
         </div>
 
-        <!-- 总评按钮 -->
+        <!-- 总评按钮 + 导出 -->
         <div class="sidebar-bottom">
           <button
             v-if="session.status === 'in_progress' && currentIndex >= totalQuestions - 1 && lastAnswered"
@@ -67,6 +67,16 @@
             :disabled="completing"
           >
             {{ completing ? '生成总评...' : '结束面试，查看总评' }}
+          </button>
+          <button
+            v-if="session.questions?.length"
+            class="btn btn-secondary btn-full"
+            @click="exportPDF"
+            :disabled="exporting"
+            style="margin-top: 8px;"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v8M3.5 5.5L7 9l3.5-3.5"/><path d="M1 10v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>
+            {{ exporting ? '导出中...' : '导出问题 PDF' }}
           </button>
         </div>
       </div>
@@ -160,6 +170,7 @@ const startForm = ref({ job_id: '', resume_id: '' })
 const starting = ref(false)
 const answering = ref(false)
 const completing = ref(false)
+const exporting = ref(false)
 const answerText = ref('')
 const lastAnswered = ref(false)
 const chatRef = ref<HTMLElement | null>(null)
@@ -226,6 +237,28 @@ const completeInterview = async () => {
   } catch (e: any) {
     alert(e.response?.data?.detail || '生成总评失败')
   } finally { completing.value = false }
+}
+
+const exportPDF = async () => {
+  if (!session.value?.id) return
+  exporting.value = true
+  try {
+    const response = await api.get(`/api/v1/interview/${session.value.id}/export`, {
+      responseType: 'blob',
+    })
+    // 创建下载链接
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `interview_${session.value.id.slice(0, 8)}.pdf`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e: any) {
+    console.error('导出失败', e)
+    alert('导出PDF失败')
+  } finally { exporting.value = false }
 }
 
 onMounted(async () => {
