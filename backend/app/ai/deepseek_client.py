@@ -5,6 +5,7 @@ DeepSeek API 客户端封装
 import json
 import logging
 from typing import Optional
+import httpx
 from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
@@ -14,9 +15,16 @@ _client: Optional[AsyncOpenAI] = None
 
 
 async def init_client(api_key: str, base_url: str = "https://api.deepseek.com") -> None:
-    """初始化 DeepSeek 客户端"""
+    """初始化 DeepSeek 客户端（强制IPv4避免连接问题）"""
     global _client
-    _client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+    # 创建 httpx 客户端，强制使用 IPv4
+    transport = httpx.AsyncHTTPTransport(local_address="0.0.0.0")
+    http_client = httpx.AsyncClient(transport=transport, timeout=60)
+    _client = AsyncOpenAI(
+        api_key=api_key,
+        base_url=base_url,
+        http_client=http_client,
+    )
     logger.info("DeepSeek 客户端已初始化")
 
 

@@ -123,8 +123,11 @@ async def test_api_connection(req: APITestRequest):
     model = app_settings.deepseek_model
 
     try:
+        import httpx
         from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        transport = httpx.AsyncHTTPTransport(local_address="0.0.0.0")
+        http_client = httpx.AsyncClient(transport=transport, timeout=30)
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url, http_client=http_client)
         response = await client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": "你好，请回复'连接成功'"}],
