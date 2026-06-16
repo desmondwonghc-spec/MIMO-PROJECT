@@ -3,7 +3,7 @@
 """
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from bson import ObjectId, errors as bson_errors
 
 from database import get_collection
@@ -13,6 +13,7 @@ from app.models.job import (
 )
 from app.models.common import paginate
 from app.utils.exceptions import NotFoundError, ValidationError
+from app.utils.auth_deps import get_current_user
 
 
 def _validate_object_id(id_str: str) -> ObjectId:
@@ -22,7 +23,7 @@ def _validate_object_id(id_str: str) -> ObjectId:
     except (bson_errors.InvalidId, Exception):
         raise ValidationError(f"无效的ID格式: {id_str}")
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 def _doc_to_response(doc: dict) -> dict:

@@ -3,16 +3,17 @@
 """
 from __future__ import annotations
 from typing import Optional
-from fastapi import APIRouter, UploadFile, File, Form, Query
+from fastapi import APIRouter, UploadFile, File, Form, Query, Depends
 from fastapi.responses import FileResponse
 
 from app.services import resume_service
-from app.models.resume import ResumeResponse, ResumeListResponse, ResumeStructuredData, ResumeSource, ParsingStatus
+from app.models.resume import ResumeResponse, ResumeListResponse, ResumeStructuredData
 from app.models.common import paginate
 from app.utils.exceptions import NotFoundError, ValidationError
 from app.file_handlers.file_storage import get_resume_file_path
+from app.utils.auth_deps import get_current_user
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 def _doc_to_response(doc: dict) -> dict:
@@ -22,23 +23,14 @@ def _doc_to_response(doc: dict) -> dict:
     elif "id" not in doc:
         doc["id"] = ""
 
-    # 转换结构化数据
     if doc.get("structured_data") and isinstance(doc["structured_data"], dict):
         try:
             doc["structured_data"] = ResumeStructuredData(**doc["structured_data"])
         except Exception:
             doc["structured_data"] = None
 
-    # 确保枚举值
-    if isinstance(doc.get("source"), str):
-        doc["source"] = doc["source"]
-    if isinstance(doc.get("parsing_status"), str):
-        doc["parsing_status"] = doc["parsing_status"]
-
-    # 确保必要字段存在
     doc.setdefault("parsing_error", None)
     doc.setdefault("source", "upload")
-
     return doc
 
 
@@ -51,10 +43,7 @@ async def list_resumes(
 ):
     """获取简历列表"""
     result = await resume_service.list_resumes(
-        status=status,
-        search=search,
-        page=page,
-        page_size=page_size,
+        status=status, search=search, page=page, page_size=page_size,
     )
     result["items"] = [_doc_to_response(doc) for doc in result["items"]]
     return result
@@ -68,18 +57,12 @@ async def upload_resume(
     """上传简历文件，自动启动AI解析"""
     if not file.filename:
         raise ValidationError("请选择要上传的文件")
-
-    # 读取文件内容
     content = await file.read()
     if not content:
         raise ValidationError("文件内容为空")
-
     doc = await resume_service.upload_and_parse(
-        filename=file.filename,
-        file_content=content,
-        source=source,
+        filename=file.filename, file_content=content, source=source,
     )
-
     return _doc_to_response(doc)
 
 
@@ -106,10 +89,7 @@ async def reparse_resume(resume_id: str):
     doc = await resume_service.get_resume(resume_id)
     if not doc:
         raise NotFoundError("简历", resume_id)
-
     await resume_service.reparse_resume(resume_id)
-
-    # 返回更新后的文档
     doc = await resume_service.get_resume(resume_id)
     return _doc_to_response(doc)
 
@@ -120,10 +100,8 @@ async def download_resume_file(resume_id: str):
     doc = await resume_service.get_resume(resume_id)
     if not doc:
         raise NotFoundError("简历", resume_id)
-
     file_path = get_resume_file_path(doc["file_path"])
     return FileResponse(
-        path=str(file_path),
-        filename=doc["original_filename"],
+        path=str(file_path), filename=doc["original_filename"],
         media_type="application/octet-stream",
     )

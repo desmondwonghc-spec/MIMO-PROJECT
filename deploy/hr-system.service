@@ -1,0 +1,16 @@
+[Unit]
+Description=HR智能简历筛选系统
+After=network.target mongod.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/hr-system/backend
+Environment="PYTHONIOENCODING=utf-8"
+ExecStart=/opt/hr-system/backend/.venv/bin/uvicorn app:create_app --factory --host 127.0.0.1 --port 8765
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
