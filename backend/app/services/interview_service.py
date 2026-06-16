@@ -111,8 +111,10 @@ async def start_session(job_id: str, resume_id: str) -> dict:
         )
 
     doc["_id"] = session_id
+    # 需要从数据库重新获取（因为conversation已被更新）
+    updated = await sessions_col.find_one({"_id": result.inserted_id})
     logger.info(f"面试会话已启动: {session_id}, {len(questions)}个问题")
-    return doc
+    return _format_session(updated)
 
 
 async def submit_answer(session_id: str, answer_text: str) -> dict:
